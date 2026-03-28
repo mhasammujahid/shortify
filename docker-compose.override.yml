@@ -1,0 +1,28 @@
+version: '3.9'
+
+# Development overrides — automatically merged by docker-compose
+# Enables hot reload by mounting source code as a volume
+# Usage: docker-compose up --build (override is applied automatically)
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps          # stop at deps stage — skip full prod build
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
+    ports:
+      - '3000:3000'
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - NODE_ENV=development
+      - NEXT_TELEMETRY_DISABLED=1
+      - WATCHPACK_POLLING=true   # required for hot reload inside Docker on some hosts
+    volumes:
+      # Mount entire source so edits reflect instantly
+      - .:/app
+      # Preserve node_modules from the image (don't overwrite with host)
+      - /app/node_modules
+      # Preserve .next build cache
+      - /app/.next
+    restart: unless-stopped
