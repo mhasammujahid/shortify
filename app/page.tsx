@@ -31,30 +31,18 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<LinkItem | null>(null);
   const [error, setError] = useState("");
-  const [links, setLinks] = useState<LinkItem[]>([]);
   const [copied, setCopied] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
-    fetchLinks();
 
     const params = new URLSearchParams(window.location.search);
     if (params.get("error") === "not_found") {
       setError("Short link not found.");
     }
   }, []);
-
-  async function fetchLinks() {
-    try {
-      const res = await fetch("/api/shorten");
-      if (res.ok) {
-        const data = await res.json();
-        setLinks(data);
-      }
-    } catch {}
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -78,7 +66,6 @@ export default function Home() {
         setError(data.error || "Something went wrong");
       } else {
         setResult(data);
-        setLinks((prev) => [data, ...prev.slice(0, 19)]);
         setUrl("");
         setCustomSlug("");
         setShowAdvanced(false);
@@ -347,99 +334,6 @@ export default function Home() {
               </button>
             </div>
           </div>
-        )}
-
-        {/* Recent links */}
-        {links.length > 0 && (
-          <section className="animate-fade-in">
-            <div className="flex items-center justify-between mb-4">
-              <h2
-                className="text-xs tracking-widest uppercase"
-                style={{ color: "var(--text-muted)" }}
-              >
-                Recent Links
-              </h2>
-              <span
-                className="text-xs px-2 py-0.5 rounded-full"
-                style={{
-                  background: "var(--surface-2)",
-                  color: "var(--text-muted)",
-                }}
-              >
-                {links.length}
-              </span>
-            </div>
-
-            <div className="space-y-2">
-              {links.map((link, i) => (
-                <div
-                  key={link.id}
-                  className="group rounded-lg px-4 py-3 flex items-center gap-3 transition-all cursor-pointer"
-                  style={{
-                    background: "var(--surface)",
-                    border: "1px solid var(--border)",
-                    animationDelay: `${i * 40}ms`,
-                  }}
-                  onClick={() => copyToClipboard(link.shortUrl)}
-                >
-                  {/* Favicon placeholder */}
-                  <div
-                    className="w-7 h-7 rounded-md shrink-0 flex items-center justify-center text-xs font-bold"
-                    style={{
-                      background: "var(--surface-2)",
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    {new URL(link.url).hostname.charAt(0).toUpperCase()}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span
-                        className="text-sm font-medium"
-                        style={{
-                          color: "var(--accent)",
-                          fontFamily: "var(--font-mono)",
-                        }}
-                      >
-                        /{link.slug}
-                      </span>
-                      <span
-                        className="text-xs px-1.5 py-0.5 rounded"
-                        style={{
-                          background: "var(--surface-2)",
-                          color: "var(--text-muted)",
-                        }}
-                      >
-                        {link.clicks} clicks
-                      </span>
-                    </div>
-                    <p
-                      className="text-xs truncate"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      {truncate(link.url, 55)}
-                    </p>
-                  </div>
-
-                  <div className="shrink-0 text-right">
-                    <p
-                      className="text-xs"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      {timeAgo(link.createdAt)}
-                    </p>
-                    <p
-                      className="text-xs mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                      style={{ color: "var(--accent)" }}
-                    >
-                      copy
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
         )}
 
         {/* Footer */}
